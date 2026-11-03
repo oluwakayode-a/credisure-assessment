@@ -30,8 +30,6 @@ Set a strong `SECRET_KEY` in backend and `AUTH_SECRET` in frontend before deploy
 
 ## Run with Docker
 
-With Docker Engine and the Compose plugin installed, build and start the frontend and API together:
-
 ```bash
 docker compose up --build
 ```
