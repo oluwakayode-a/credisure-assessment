@@ -1,4 +1,4 @@
-.PHONY: startserver makemigrations migrate
+.PHONY: startserver
 
 startserver:
 	uvicorn main:app --reload
