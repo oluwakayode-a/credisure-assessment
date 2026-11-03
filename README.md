@@ -1,6 +1,6 @@
 # CrediSure dashboard
 
-Responsive Next.js dashboard with React Router client navigation and NextAuth credentials sign-in. FastAPI serves JWT-authenticated dashboard data backed by SQLModel and SQLite.
+Responsive Next.js (App Router) dashboard with NextAuth credentials sign-in; dashboard routes are protected in `src/proxy.ts`. FastAPI serves JWT-authenticated dashboard data backed by SQLModel and SQLite.
 
 ## Run locally
 
@@ -19,10 +19,12 @@ Start the frontend in another terminal:
 
 ```bash
 cd frontend
-npm install
+pnpm install
 cp .env.example .env.local
-npm run dev
+pnpm dev
 ```
+
+Run the API tests with `cd backend && uv run pytest`.
 
 Open http://localhost:3000. Seeded demo login: `admin@credisure.com` / `password123`.
 

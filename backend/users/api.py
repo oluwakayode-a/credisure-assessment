@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -5,12 +6,20 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
+from core.config import ACCESS_TOKEN_MINUTES
 from core.database import get_session
 from core.security import create_access_token, get_current_user, verify_password
 from users.models import User
 from users.schema import Overview, Token, UserPage, UserPublic
 
 router = APIRouter()
+
+ACTIVITY_MONTHS = 7
+
+
+def month_start(day: date, months_back: int = 0) -> date:
+    month_index = day.year * 12 + day.month - 1 - months_back
+    return date(month_index // 12, month_index % 12 + 1, 1)
 
 
 @router.post("/auth/login", response_model=Token, tags=["auth"])
@@ -25,7 +34,11 @@ def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return Token(access_token=create_access_token(user), user=UserPublic.model_validate(user))
+    return Token(
+        access_token=create_access_token(user),
+        expires_in=ACCESS_TOKEN_MINUTES * 60,
+        user=UserPublic.model_validate(user),
+    )
 
 
 @router.get("/auth/me", response_model=UserPublic, tags=["auth"])
@@ -38,14 +51,24 @@ def overview(
     _: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
 ):
-    users = session.exec(select(User)).all()
+    status_counts = dict(session.exec(select(User.status, func.count()).group_by(User.status)).all())
+    total = sum(status_counts.values())
+
+    window_start = month_start(date.today(), ACTIVITY_MONTHS - 1)
+    activity = [0] * ACTIVITY_MONTHS
+    for joined_at in session.exec(select(User.joined_at).where(User.joined_at >= window_start)).all():
+        activity[(joined_at.year - window_start.year) * 12 + joined_at.month - window_start.month] += 1
+
+    previous_total = total - activity[-1]
+    users_change = round(activity[-1] / previous_total * 100, 1) if previous_total else 0.0
+
     return Overview(
-        total_users=len(users),
-        active_users=sum(user.status == "active" for user in users),
-        pending_users=sum(user.status == "pending" for user in users),
-        inactive_users=sum(user.status == "inactive" for user in users),
-        users_change=12.8,
-        activity=[4, 7, 6, 11, 9, 15, len(users)],
+        total_users=total,
+        active_users=status_counts.get("active", 0),
+        pending_users=status_counts.get("pending", 0),
+        inactive_users=status_counts.get("inactive", 0),
+        users_change=users_change,
+        activity=activity,
     )
 
 
