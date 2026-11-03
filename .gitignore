@@ -10,3 +10,4 @@ __pycache__/
 backend/.venv/
 backend/credisure.db
 backend/.env
+*.tsbuildinfo

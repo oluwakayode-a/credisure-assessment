@@ -1,20 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  NavLink,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LayoutDashboard, LogOut, Menu, Users, X } from "lucide-react";
 import { Brand } from "@/components/dashboard/brand";
 import { API } from "@/components/dashboard/types";
-import { OverviewPage } from "@/components/dashboard/overview-page";
-import { UsersPage } from "@/components/dashboard/users-page";
 
 function NavItem({
   to,
@@ -29,29 +21,26 @@ function NavItem({
   end?: boolean;
   onClick?: () => void;
 }) {
+  const pathname = usePathname();
+  const isActive = end ? pathname === to : pathname.startsWith(to);
   return (
-    <NavLink
-      end={end}
-      to={to}
+    <Link
+      href={to}
       onClick={onClick}
-      className={({ isActive }) =>
-        `nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] ${isActive ? "active" : ""}`
-      }
+      aria-current={isActive ? "page" : undefined}
+      className={`nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] ${isActive ? "active" : ""}`}
     >
       {icon}
       <span>{label}</span>
-    </NavLink>
+    </Link>
   );
 }
 
-export function Shell() {
-  const { data } = useSession();
+export function Shell({ children }: { children: React.ReactNode }) {
+  const { data } = useSession({ required: true });
   const [mobileNav, setMobileNav] = useState(false);
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const token = data?.accessToken;
-  const onUsers = location.pathname.includes("users");
+  const onUsers = usePathname().startsWith("/dashboard/users");
 
   useEffect(() => {
     let alive = true;
@@ -70,11 +59,6 @@ export function Shell() {
       window.clearInterval(id);
     };
   }, []);
-
-  async function exit() {
-    await signOut({ redirect: false });
-    navigate("/login", { replace: true });
-  }
 
   return (
     <div className="min-h-screen bg-[#f7f9f7]">
@@ -110,7 +94,7 @@ export function Shell() {
           />
         </nav>
         <button
-          onClick={exit}
+          onClick={() => signOut({ callbackUrl: "/login" })}
           className="nav-link mt-auto flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px]"
         >
           <LogOut size={16} />
@@ -138,8 +122,8 @@ export function Shell() {
           onClick={() => setMobileNav(false)}
         />
       )}
-      <div className="min-h-screen lg:pl-[250px]">
-        <header className="sticky top-0 z-20 flex h-[70px] items-center justify-between border-b border-[#e9eeea] bg-white/95 px-5 backdrop-blur sm:px-8 lg:px-10">
+      <div className="min-h-screen lg:pl-62.5">
+        <header className="sticky top-0 z-20 flex h-17.5 items-center justify-between border-b border-[#e9eeea] bg-white/95 px-5 backdrop-blur sm:px-8 lg:px-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileNav(true)}
@@ -173,12 +157,8 @@ export function Shell() {
                 : "API offline"}
           </div>
         </header>
-        <main className="mx-auto max-w-[1500px] p-5 sm:p-8 lg:px-10 lg:py-9">
-          <Routes>
-            <Route index element={<OverviewPage token={token} />} />
-            <Route path="users" element={<UsersPage token={token} />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+        <main className="mx-auto max-w-375 p-5 sm:p-8 lg:px-10 lg:py-9">
+          {children}
         </main>
       </div>
     </div>

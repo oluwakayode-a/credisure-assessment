@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   Activity,
   Check,
@@ -13,7 +14,8 @@ import {
 import { UserTable } from "@/components/dashboard/user-table";
 import { API, type UserRow } from "@/components/dashboard/types";
 
-export function UsersPage({ token }: { token?: string }) {
+export function UsersPage() {
+  const token = useSession().data?.accessToken;
   const [rows, setRows] = useState<UserRow[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");

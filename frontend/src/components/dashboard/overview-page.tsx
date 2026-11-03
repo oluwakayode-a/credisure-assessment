@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Activity, ArrowRight, Check, CircleHelp, Users } from "lucide-react";
 import {
   Area,
@@ -22,7 +23,8 @@ import {
 import { UserTable } from "@/components/dashboard/user-table";
 import { API, type Overview, type UserRow } from "@/components/dashboard/types";
 
-export function OverviewPage({ token }: { token?: string }) {
+export function OverviewPage() {
+  const token = useSession().data?.accessToken;
   const [overview, setOverview] = useState<Overview | null>(null);
   const [recent, setRecent] = useState<UserRow[]>([]);
   const [error, setError] = useState("");
@@ -82,7 +84,7 @@ export function OverviewPage({ token }: { token?: string }) {
   return (
     <>
       <div className="mb-7">
-        <p className="text-[12px] text-[#89948d]">
+        <p className="text-[12px] text-[#89948d]" suppressHydrationWarning>
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",
@@ -172,7 +174,7 @@ export function OverviewPage({ token }: { token?: string }) {
           {overview?.activity?.length ? (
             <GrowthChart values={overview.activity} />
           ) : (
-            <p className="mt-8 grid h-[220px] place-items-center text-[12px] text-[#89948d]">
+            <p className="mt-8 grid h-55 place-items-center text-[12px] text-[#89948d]">
               No growth data available.
             </p>
           )}
@@ -219,7 +221,7 @@ export function OverviewPage({ token }: { token?: string }) {
             </p>
           </div>
           <Link
-            to="/dashboard/users"
+            href="/dashboard/users"
             className="flex items-center gap-1 text-[11px] font-semibold text-[#168750]"
           >
             View all <ArrowRight size={13} />

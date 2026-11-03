@@ -1,25 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Brand } from "@/components/dashboard/brand";
 
 export function LoginPage() {
   const { status } = useSession();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const location = useLocation();
+  const callbackUrl = useSearchParams().get("callbackUrl");
+
+  
   const from =
-    (location.state as { from?: string } | null)?.from ?? "/dashboard";
+    callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+      ? callbackUrl
+      : "/dashboard";
   useEffect(() => {
-    if (status === "authenticated") navigate(from, { replace: true });
-  }, [status, navigate, from]);
+    if (status === "authenticated") router.replace(from);
+  }, [status, router, from]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,7 +36,7 @@ export function LoginPage() {
         redirect: false,
       });
       if (result?.error) setError("Email or password didn’t match. Try again.");
-      else navigate(from, { replace: true });
+      else router.replace(from);
     } catch {
       setError(
         "Unable to sign in right now. Check your connection and try again.",
