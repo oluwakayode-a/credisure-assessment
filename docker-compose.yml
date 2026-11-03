@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-local-docker-secret-change-before-deploy}
+      DATABASE_URL: sqlite:////data/credisure.db
+      FRONTEND_ORIGINS: http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://localhost:8000/health')"
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    environment:
+      API_URL: http://backend:8000
+      AUTH_SECRET: ${AUTH_SECRET:-local-docker-auth-secret-change-before-deploy}
+      NEXTAUTH_SECRET: ${AUTH_SECRET:-local-docker-auth-secret-change-before-deploy}
+      NEXTAUTH_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
