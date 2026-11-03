@@ -15,15 +15,24 @@ export const authOptions: NextAuthOptions = {
         const password = String(credentials?.password ?? "");
         if (!email || !password) return null;
         try {
-          const response = await fetch(`${process.env.API_URL ?? "http://localhost:8000"}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ username: email, password }),
-            cache: "no-store",
-          });
+          const response = await fetch(
+            `${process.env.API_URL ?? "http://localhost:8000"}/auth/login`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({ username: email, password }),
+              cache: "no-store",
+            },
+          );
           if (!response.ok) return null;
           const result = await response.json();
-          return { id: String(result.user.id), name: result.user.full_name, email: result.user.email, role: result.user.role, accessToken: result.access_token };
+          return {
+            id: String(result.user.id),
+            name: result.user.full_name,
+            email: result.user.email,
+            role: result.user.role,
+            accessToken: result.access_token,
+          };
         } catch {
           return null;
         }
