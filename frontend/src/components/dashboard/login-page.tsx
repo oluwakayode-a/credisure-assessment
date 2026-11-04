@@ -64,9 +64,7 @@ export function LoginPage() {
               Sign in to CrediSure.
             </p>
           </div>
-          <p className="mb-5 rounded-lg bg-[#e9f5ed] px-3 py-2 text-xs text-[#245d3d]">
-            Demo account filled in — just press <b>Sign in</b>.
-          </p>
+          
           <form onSubmit={submit} className="space-y-5">
             <label className="block text-[13px] font-semibold">
               Email address
