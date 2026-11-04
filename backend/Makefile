@@ -1,4 +1,10 @@
-.PHONY: startserver
+.PHONY: startserver seed test
 
-startserver:
+seed:
+	python -m users.seed
+
+startserver: seed
 	uvicorn main:app --reload
+
+test:
+	pytest

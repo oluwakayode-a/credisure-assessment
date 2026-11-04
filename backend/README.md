@@ -9,7 +9,8 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+python -m users.seed
 uvicorn main:app --reload
 ```
 
-Demo login: `admin@credisure.com` / `password123`. Set `SECRET_KEY` and `DATABASE_URL` from `.env.example` before deployment. API docs: http://localhost:8000/docs.
+Demo login: `admin@credisure.com` / `password123`. Seeding is idempotent; `deploy.sh` runs it before starting the server in Docker. Set `SECRET_KEY` and `DATABASE_URL` from `.env.example` before deployment. API docs: http://localhost:8000/docs.

@@ -6,17 +6,20 @@ import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Brand } from "@/components/dashboard/brand";
 
+
+const DEMO_EMAIL = "admin@credisure.com";
+const DEMO_PASSWORD = "password123";
+
 export function LoginPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [password, setPassword] = useState(DEMO_PASSWORD);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const callbackUrl = useSearchParams().get("callbackUrl");
 
-  
   const from =
     callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
       ? callbackUrl
@@ -61,6 +64,9 @@ export function LoginPage() {
               Sign in to CrediSure.
             </p>
           </div>
+          <p className="mb-5 rounded-lg bg-[#e9f5ed] px-3 py-2 text-xs text-[#245d3d]">
+            Demo account filled in — just press <b>Sign in</b>.
+          </p>
           <form onSubmit={submit} className="space-y-5">
             <label className="block text-[13px] font-semibold">
               Email address

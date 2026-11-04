@@ -1,19 +1,30 @@
 from datetime import date, timedelta
 
-from sqlmodel import Session, select
+from sqlmodel import Session, SQLModel, select
 
+from core.config import DEMO_EMAIL, DEMO_PASSWORD
+from core.database import engine
 from core.security import hash_password
 from users.models import User
 
 
-def seed_demo_users(session: Session) -> None:
-    if session.exec(select(User.id).limit(1)).first() is not None:
-        return
+def seed_demo_users(session: Session, email: str = DEMO_EMAIL, password: str = DEMO_PASSWORD) -> None:
+    if session.exec(select(User.id).limit(1)).first() is None:
+        seed_customers(session, admin_email=email)
 
-    password = hash_password("password123")
+    
+    admin = session.exec(select(User).where(User.email == email)).first()
+    if admin is None:
+        admin = User(email=email, full_name="Alex Morgan", company="CrediSure", role="admin")
+    admin.hashed_password = hash_password(password)
+    session.add(admin)
+    session.commit()
+
+
+def seed_customers(session: Session, admin_email: str) -> None:
     today = date.today()
     people = [
-        ("Alex Morgan", "admin@credisure.com", "CrediSure", "active"),
+        ("Alex Morgan", admin_email, "CrediSure", "active"),
         ("Jordan Lee", "jordan.lee@northstar.io", "Northstar Studio", "active"),
         ("Samira Okafor", "samira@wellnest.co", "Wellnest Health", "pending"),
         ("Daniel Kim", "daniel.kim@fieldwork.com", "Fieldwork Labs", "active"),
@@ -46,8 +57,14 @@ def seed_demo_users(session: Session) -> None:
             role="admin" if index == 0 else "customer",
             status=user_status,
             joined_at=today - timedelta(days=(23 - index) * 8 + index % 5),
-            hashed_password=password if index == 0 else None,
         )
         for index, (name, email, company, user_status) in enumerate(people)
     ])
     session.commit()
+
+
+if __name__ == "__main__":
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        seed_demo_users(session)
+    print(f"Seeded demo data. Demo login: {DEMO_EMAIL}")

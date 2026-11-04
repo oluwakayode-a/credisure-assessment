@@ -3,18 +3,16 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, SQLModel
+from sqlmodel import SQLModel
 
 from core.database import engine
 from users.api import router as users_router
-from users.seed import seed_demo_users
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # Seeding is a separate step (deploy.sh / `make seed`) so it doesn't run on every reload.
     SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        seed_demo_users(session)
     yield
 
 
