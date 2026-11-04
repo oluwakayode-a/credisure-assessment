@@ -47,11 +47,11 @@ services:
         value: "22"
       # Read at build time and shipped to the browser.
       - key: NEXT_PUBLIC_API_URL
-        value: https://credisure-api.onrender.com
+        value: https://credisure-api-4cmx.onrender.com
       # Used by NextAuth on the server. Free services can't receive private
       # network traffic, so this is the public URL too.
       - key: API_URL
-        value: https://credisure-api.onrender.com
+        value: https://credisure-api-4cmx.onrender.com
       - key: NEXTAUTH_URL
         value: https://credisure-web.onrender.com
       - key: AUTH_SECRET
