@@ -1,0 +1,58 @@
+# Render Blueprint: two free web services built with Render's native runtimes
+# (Render can't build a specific stage of the multi-stage Dockerfile).
+#
+# Data lives in a free Render Postgres instance. Free databases expire 30 days
+# after creation (then a 14-day grace period to upgrade before deletion), have
+# 1 GB of storage and no backups, and each workspace can have only one.
+#
+# The URLs below assume Render gives each service https://<name>.onrender.com.
+# If a name is taken, Render adds a suffix; update the URLs to match.
+databases:
+  - name: credisure-db
+    plan: free
+    databaseName: credisure
+    user: credisure
+
+services:
+  - type: web
+    name: credisure-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: sh deploy.sh
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: SECRET_KEY
+        generateValue: true
+      # Internal URL; free web services can send private traffic to data stores.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: credisure-db
+          property: connectionString
+      - key: FRONTEND_ORIGINS
+        value: https://credisure-web.onrender.com
+
+  - type: web
+    name: credisure-web
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npx pnpm@10.11.1 install --frozen-lockfile && npx pnpm@10.11.1 build
+    startCommand: npm start -- --hostname 0.0.0.0
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Read at build time and shipped to the browser.
+      - key: NEXT_PUBLIC_API_URL
+        value: https://credisure-api.onrender.com
+      # Used by NextAuth on the server. Free services can't receive private
+      # network traffic, so this is the public URL too.
+      - key: API_URL
+        value: https://credisure-api.onrender.com
+      - key: NEXTAUTH_URL
+        value: https://credisure-web.onrender.com
+      - key: AUTH_SECRET
+        generateValue: true
